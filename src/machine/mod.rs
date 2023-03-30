@@ -14,7 +14,7 @@ use super::instructions::{execute, Instruction, Register};
 use super::memory::{round_page_down, round_page_up, Memory};
 use super::syscalls::Syscalls;
 use super::{
-    registers::{A0, A7, REGISTER_ABI_NAMES, SP},
+    registers::{A0, A1, A2, A3, A4, A5, A7, REGISTER_ABI_NAMES, SP},
     Error, DEFAULT_STACK_SIZE, ISA_MOP, RISCV_GENERAL_REGISTER_NUMBER, RISCV_MAX_MEMORY,
 };
 
@@ -498,6 +498,14 @@ impl<Inner: SupportMachine> SupportMachine for DefaultMachine<'_, Inner> {
 impl<Inner: SupportMachine> Machine for DefaultMachine<'_, Inner> {
     fn ecall(&mut self) -> Result<(), Error> {
         let code = self.registers()[A7].to_u64();
+        let arg0 = self.registers()[A0].to_u64();
+        let arg1 = self.registers()[A1].to_u64();
+        let arg2 = self.registers()[A2].to_u64();
+        let arg3 = self.registers()[A3].to_u64();
+        let arg4 = self.registers()[A4].to_u64();
+        let arg5 = self.registers()[A5].to_u64();
+        dbg!(code, arg0, arg1, arg2, arg3);
+        probe::probe!(ckb_vm, syscall, code, arg0, arg1, arg2, arg3, arg4, arg5);
         match code {
             93 => {
                 // exit
@@ -509,6 +517,10 @@ impl<Inner: SupportMachine> Machine for DefaultMachine<'_, Inner> {
                 for syscall in &mut self.syscalls {
                     let processed = syscall.ecall(&mut self.inner)?;
                     if processed {
+                        let ret_code = self.registers()[A0].to_u64();
+                        let ret_code2 = self.registers()[A2].to_u64();
+                        dbg!(code, ret_code, ret_code2);
+                        probe::probe!(ckb_vm, syscall_ret, code, ret_code, ret_code2);
                         if self.cycles() > self.max_cycles() {
                             return Err(Error::CyclesExceeded);
                         }

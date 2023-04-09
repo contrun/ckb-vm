@@ -213,6 +213,7 @@ pub fn execute_instruction<Mac: Machine>(
                 } else if i.rd() == RA {
                     common::probe_function_call(machine, machine.pc().clone(), next_pc.clone());
                 }
+                common::probe_jump(machine, link.clone(), next_pc.clone());
                 update_register(machine, i.rd(), link);
                 machine.update_pc(next_pc);
             } else {

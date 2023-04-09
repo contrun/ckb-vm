@@ -402,18 +402,18 @@ pub fn probe_function_call<Mac: Machine>(
     let a5 = machine.registers()[A5].to_u64();
     let a6 = machine.registers()[A6].to_u64();
     let a7 = machine.registers()[A7].to_u64();
-    dbg!(
-        current_pc.to_u64(),
-        next_pc.to_u64(),
-        a0,
-        a1,
-        a2,
-        a3,
-        a4,
-        a5,
-        a6,
-        a7
-    );
+    // dbg!(
+    //     current_pc.to_u64(),
+    //     next_pc.to_u64(),
+    //     a0,
+    //     a1,
+    //     a2,
+    //     a3,
+    //     a4,
+    //     a5,
+    //     a6,
+    //     a7
+    // );
     probe::probe!(
         ckb_vm,
         function_call_arguments,
@@ -443,7 +443,7 @@ pub fn probe_function_return<Mac: Machine>(
 ) {
     let a0 = machine.registers()[A0].to_u64();
     let a1 = machine.registers()[A1].to_u64();
-    dbg!(current_pc.to_u64(), return_pc.to_u64(), a0, a1);
+    // dbg!(current_pc.to_u64(), return_pc.to_u64(), a0, a1);
     probe::probe!(
         ckb_vm,
         function_return,
@@ -452,4 +452,11 @@ pub fn probe_function_return<Mac: Machine>(
         a0,
         a1,
     );
+}
+
+pub fn probe_jump<Mac: Machine>(machine: &mut Mac, current_pc: Mac::REG, next_pc: Mac::REG) {
+    let regs = machine.registers().as_ptr();
+    // let memory = (&mut machine.memory_mut().inner_mut()).as_ptr();
+    // dbg!(current_pc.to_u64(), next_pc.to_u64(), regs,);
+    probe::probe!(ckb_vm, jump, current_pc.to_u64(), next_pc.to_u64(), regs,);
 }

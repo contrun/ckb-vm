@@ -381,8 +381,9 @@ pub fn sraiw<Mac: Machine>(
 // =======================
 pub fn jal<Mac: Machine>(machine: &mut Mac, rd: RegisterIndex, imm: SImmediate, xbytes: u8) {
     let link = machine.pc().overflowing_add(&Mac::REG::from_u8(xbytes));
-    update_register(machine, rd, link);
+    update_register(machine, rd, link.clone());
     let next_pc = machine.pc().overflowing_add(&Mac::REG::from_i32(imm));
+    probe_jump(machine, link.clone(), next_pc.clone());
     if rd == RA {
         probe_function_call(machine, machine.pc().clone(), next_pc.clone())
     }
@@ -454,9 +455,9 @@ pub fn probe_function_return<Mac: Machine>(
     );
 }
 
-pub fn probe_jump<Mac: Machine>(machine: &mut Mac, current_pc: Mac::REG, next_pc: Mac::REG) {
+pub fn probe_jump<Mac: Machine>(machine: &mut Mac, link: Mac::REG, next_pc: Mac::REG) {
     let regs = machine.registers().as_ptr();
-    // let memory = (&mut machine.memory_mut().inner_mut()).as_ptr();
-    // dbg!(current_pc.to_u64(), next_pc.to_u64(), regs,);
-    probe::probe!(ckb_vm, jump, current_pc.to_u64(), next_pc.to_u64(), regs,);
+    // TODO: obtain the memory pointer and pass it to usdt.
+    // let memory = (machine.memory_mut()).as_ptr();
+    probe::probe!(ckb_vm, jump, link.to_u64(), next_pc.to_u64(), regs, regs);
 }

@@ -47,6 +47,14 @@ pub trait CoreMachine {
     // in case of bug fixes.
     fn version(&self) -> u32;
     fn isa(&self) -> u8;
+
+    fn registers_ptr(&self) -> *const Self::REG {
+        self.registers().as_ptr()
+    }
+
+    fn memory_ptr(&self) -> *const Self::REG {
+        self.memory().ptr()
+    }
 }
 
 /// This is the core trait describing a full RISC-V machine. Instruction
@@ -504,7 +512,6 @@ impl<Inner: SupportMachine> Machine for DefaultMachine<'_, Inner> {
         let arg3 = self.registers()[A3].to_u64();
         let arg4 = self.registers()[A4].to_u64();
         let arg5 = self.registers()[A5].to_u64();
-        // dbg!(code, arg0, arg1, arg2, arg3);
         probe::probe!(ckb_vm, syscall, code, arg0, arg1, arg2, arg3, arg4, arg5);
         match code {
             93 => {
@@ -518,8 +525,7 @@ impl<Inner: SupportMachine> Machine for DefaultMachine<'_, Inner> {
                     let processed = syscall.ecall(&mut self.inner)?;
                     if processed {
                         let ret_code = self.registers()[A0].to_u64();
-                        let ret_code2 = self.registers()[A2].to_u64();
-                        // dbg!(code, ret_code, ret_code2);
+                        let ret_code2 = self.registers()[A1].to_u64();
                         probe::probe!(ckb_vm, syscall_ret, code, ret_code, ret_code2);
                         if self.cycles() > self.max_cycles() {
                             return Err(Error::CyclesExceeded);

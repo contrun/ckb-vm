@@ -137,4 +137,8 @@ impl<M: Memory> Memory for WXorXMemory<M> {
         check_permission(self, &page_indices, FLAG_WRITABLE)?;
         self.inner.store_byte(addr, size, value)
     }
+
+    fn ptr(&self) -> *const Self::REG {
+        self.inner.ptr()
+    }
 }

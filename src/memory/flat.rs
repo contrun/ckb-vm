@@ -195,4 +195,8 @@ impl<R: Register> Memory for FlatMemory<R> {
         memset(&mut self[addr as usize..(addr + size) as usize], value);
         Ok(())
     }
+
+    fn ptr(&self) -> *const Self::REG {
+        self.data.as_ptr() as *const Self::REG
+    }
 }

@@ -60,6 +60,10 @@ pub trait Memory {
     fn store16(&mut self, addr: &Self::REG, value: &Self::REG) -> Result<(), Error>;
     fn store32(&mut self, addr: &Self::REG, value: &Self::REG) -> Result<(), Error>;
     fn store64(&mut self, addr: &Self::REG, value: &Self::REG) -> Result<(), Error>;
+
+    fn ptr(&self) -> *const Self::REG {
+        unimplemented!("memory ptr not implemented")
+    }
 }
 
 #[inline(always)]

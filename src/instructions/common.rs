@@ -6,7 +6,7 @@ use super::utils::update_register;
 use super::{Error, RegisterIndex, SImmediate, UImmediate};
 
 #[cfg(feature = "probes")]
-use crate::probe::{probe_function_call, probe_jump};
+use crate::probe::probe_jump;
 
 // Other instruction set functions common with RVC
 
@@ -386,11 +386,6 @@ pub fn jal<Mac: Machine>(machine: &mut Mac, rd: RegisterIndex, imm: SImmediate, 
     update_register(machine, rd, link.clone());
     let next_pc = machine.pc().overflowing_add(&Mac::REG::from_i32(imm));
     #[cfg(feature = "probes")]
-    {
-        probe_jump(machine, link.clone(), next_pc.clone());
-        if rd == crate::registers::RA {
-            probe_function_call(machine, machine.pc().clone(), next_pc.clone())
-        }
-    }
+    probe_jump(machine, link.clone(), next_pc.clone());
     machine.update_pc(next_pc);
 }

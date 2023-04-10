@@ -51,10 +51,12 @@ pub trait CoreMachine {
     fn version(&self) -> u32;
     fn isa(&self) -> u8;
 
+    #[cfg(feature = "probes")]
     fn registers_ptr(&self) -> *const Self::REG {
         self.registers().as_ptr()
     }
 
+    #[cfg(feature = "probes")]
     fn memory_ptr(&self) -> *const Self::REG {
         self.memory().ptr()
     }

@@ -196,6 +196,7 @@ impl<R: Register> Memory for FlatMemory<R> {
         Ok(())
     }
 
+    #[cfg(feature = "probes")]
     fn ptr(&self) -> *const Self::REG {
         self.data.as_ptr() as *const Self::REG
     }

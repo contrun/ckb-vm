@@ -138,6 +138,7 @@ impl<M: Memory> Memory for WXorXMemory<M> {
         self.inner.store_byte(addr, size, value)
     }
 
+    #[cfg(feature = "probes")]
     fn ptr(&self) -> *const Self::REG {
         self.inner.ptr()
     }

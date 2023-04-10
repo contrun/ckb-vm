@@ -48,6 +48,9 @@ pub fn run<R: Register, M: Memory<REG = R> + Default>(
     machine.run()
 }
 
+#[cfg(feature = "probes")]
+pub mod probe;
+
 #[cfg(test)]
 mod tests {
     use super::*;

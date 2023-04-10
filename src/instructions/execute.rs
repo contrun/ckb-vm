@@ -6,6 +6,9 @@ use super::{
 };
 use ckb_vm_definitions::{instructions as insts, registers::RA};
 
+#[cfg(feature = "probes")]
+use crate::probe::{probe_function_call, probe_function_return, probe_jump};
+
 pub fn execute_instruction<Mac: Machine>(
     inst: Instruction,
     machine: &mut Mac,
@@ -207,13 +210,16 @@ pub fn execute_instruction<Mac: Machine>(
             if machine.version() >= 1 {
                 let mut next_pc = machine.registers()[i.rs1()]
                     .overflowing_add(&Mac::REG::from_i32(i.immediate_s()));
-                common::probe_jump(machine, link.clone(), next_pc.clone());
-                next_pc = next_pc & (!Mac::REG::one());
-                if i.rs1() == RA && i.immediate_s() == 0 {
-                    common::probe_function_return(machine, machine.pc().clone(), next_pc.clone());
-                } else if i.rd() == RA {
-                    common::probe_function_call(machine, machine.pc().clone(), next_pc.clone());
+                #[cfg(feature = "probes")]
+                {
+                    probe_jump(machine, link.clone(), next_pc.clone());
+                    if i.rs1() == RA && i.immediate_s() == 0 {
+                        probe_function_return(machine, machine.pc().clone(), next_pc.clone());
+                    } else if i.rd() == RA {
+                        probe_function_call(machine, machine.pc().clone(), next_pc.clone());
+                    }
                 }
+                next_pc = next_pc & (!Mac::REG::one());
                 update_register(machine, i.rd(), link);
                 machine.update_pc(next_pc);
             } else {
@@ -842,7 +848,8 @@ pub fn execute_instruction<Mac: Machine>(
                 .overflowing_add(&Mac::REG::from_i32(i.immediate_s()))
                 & (!Mac::REG::one());
             update_register(machine, RA, link);
-            common::probe_function_call(machine, machine.pc().clone(), next_pc.clone());
+            #[cfg(feature = "probes")]
+            probe_function_call(machine, machine.pc().clone(), next_pc.clone());
             machine.update_pc(next_pc);
         }
         insts::OP_FAR_JUMP_ABS => {
@@ -851,7 +858,8 @@ pub fn execute_instruction<Mac: Machine>(
             let link = machine.pc().overflowing_add(&Mac::REG::from_u8(size));
             let next_pc = Mac::REG::from_i32(i.immediate_s()) & (!Mac::REG::one());
             update_register(machine, RA, link);
-            common::probe_function_call(machine, machine.pc().clone(), next_pc.clone());
+            #[cfg(feature = "probes")]
+            probe_function_call(machine, machine.pc().clone(), next_pc.clone());
             machine.update_pc(next_pc);
         }
         insts::OP_ADC => {
